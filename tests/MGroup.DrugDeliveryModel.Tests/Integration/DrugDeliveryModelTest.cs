@@ -124,7 +124,7 @@ namespace MGroup.DrugDeliveryModel.Tests.Integration
 
         [Theory]
         [InlineData("../../../DataFiles/NotSoSimpleTetMesh.mphtxt")]
-        public void SimpleNonLinearModelSolution(string fileName)
+        public void StaticNonLinearTest(string fileName)
         {
             var equationModel = new MonophasicEquationModel(fileName, Sc, miNormal, kappaNormal, miTumor, kappaTumor, timeStep, totalTime, lambda0);
             Dictionary<int, double> lambda = new Dictionary<int, double>(equationModel.Reader.ElementConnectivity.Count());
