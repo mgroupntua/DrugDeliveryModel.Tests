@@ -14,6 +14,7 @@ using MGroup.DrugDeliveryModel.Tests.Commons;
 using MGroup.NumericalAnalyzers;
 using MGroup.Solvers.Direct;
 using Xunit;
+using MGroup.Constitutive.ConvectionDiffusion;
 
 namespace MGroup.DrugDeliveryModel.Tests.Integration
 {
@@ -159,5 +160,116 @@ namespace MGroup.DrugDeliveryModel.Tests.Integration
             analyzer.Solve();
             //var u1X = ((DOFSLog)parentAnalyzers[0].ChildAnalyzer.Logs[0]).DOFValues.FirstOrDefault().val;
         }
+
+        [Theory]
+        [InlineData("../../../DataFiles/workingTetMesh155.mphtxt", 1, 1, 6.94e-6, 0.0083)]
+        public void SolveEquation1(string fileName, double cox, double T, double k1, double k2)
+        {
+            double capacity = 1;
+            double dependentProductionCoeff = ((double)1 / 3) * k1 * cox * T / (k2 + cox);
+            double convectionCoeff = 0;
+            double independentSource = 0;
+            double diffusion = 0;
+            var modelProvider = new Comsol3DConvectionDiffusionProductionModelProvider(new double[] { convectionCoeff, convectionCoeff, convectionCoeff },
+                diffusion, dependentProductionCoeff, independentSource, capacity);
+
+            var model = modelProvider.CreateModelFromComsolFile(fileName);
+            var solverFactory = new DenseMatrixSolver.Factory(); //Dense Matrix Solver solves with zero matrices!
+            var algebraicModel = solverFactory.BuildAlgebraicModel(model);
+            var solver = solverFactory.BuildSolver(algebraicModel);
+            var problem = new ProblemConvectionDiffusion(model, algebraicModel, solver);
+
+            var linearAnalyzer = new LinearAnalyzer(algebraicModel, solver, problem);
+
+            var dynamicAnalyzerBuilder = new BDFDynamicAnalyzer.Builder(model, algebraicModel, problem, linearAnalyzer, timeStep: 1, totalTime: 10, bdfOrder: 5);
+            var dynamicAnalyzer = dynamicAnalyzerBuilder.Build();
+
+            var watchDofs = new List<(INode node, IDofType dof)>()
+            {
+                (model.NodesDictionary[36], ConvectionDiffusionDof.UnknownVariable),
+            };
+
+            linearAnalyzer.LogFactory = new LinearAnalyzerLogFactory(watchDofs, algebraicModel);
+
+            dynamicAnalyzer.Initialize();
+            dynamicAnalyzer.Solve();
+
+            DOFSLog log = (DOFSLog)linearAnalyzer.Logs[0];
+            double computedValue = log.DOFValues[watchDofs[0].node, watchDofs[0].dof];
+
+        }
+
+        [Theory]
+        [InlineData("../../../DataFiles/workingTetMesh155.mphtxt", 1, 6.94e-6, 0.0083)]
+        public void SolveEquation2(string fileName, double cox, double k1, double k2)
+        {
+            double capacity = 1;
+            double dependentProductionCoeff = k1 * cox / (k2 + cox);
+            double convectionCoeff = 0;
+            double independentSource = 0;
+            double diffusion = 0;
+            var modelProvider = new Comsol3DConvectionDiffusionProductionModelProvider(new double[] { convectionCoeff, convectionCoeff, convectionCoeff },
+                diffusion, dependentProductionCoeff, independentSource, capacity);
+
+            var model = modelProvider.CreateModelFromComsolFile(fileName);
+            var solverFactory = new DenseMatrixSolver.Factory(); //Dense Matrix Solver solves with zero matrices!
+            var algebraicModel = solverFactory.BuildAlgebraicModel(model);
+            var solver = solverFactory.BuildSolver(algebraicModel);
+            var problem = new ProblemConvectionDiffusion(model, algebraicModel, solver);
+
+            var linearAnalyzer = new LinearAnalyzer(algebraicModel, solver, problem);
+
+            var dynamicAnalyzerBuilder = new BDFDynamicAnalyzer.Builder(model, algebraicModel, problem, linearAnalyzer, timeStep: 1, totalTime: 10, bdfOrder: 5);
+            var dynamicAnalyzer = dynamicAnalyzerBuilder.Build();
+
+            var watchDofs = new List<(INode node, IDofType dof)>()
+            {
+                (model.NodesDictionary[13], ConvectionDiffusionDof.UnknownVariable),
+            };
+
+            linearAnalyzer.LogFactory = new LinearAnalyzerLogFactory(watchDofs, algebraicModel);
+
+            dynamicAnalyzer.Initialize();
+            dynamicAnalyzer.Solve();
+
+        }
+
+        [Theory]
+        [InlineData("../../../DataFiles/workingTetMesh155.mphtxt", 1, 1, 6.94e-6, 0.0083, new[] { 1d, 1d, 1d })]
+        public void SolveEquation9(string fileName, double T, double cox, double k1, double k2, double[] vs)
+        {
+            double capacity = 1;
+            double dependentProductionCoeff = 0;
+            double independentSource = T * k1 * cox / (k2 + cox);
+            double diffusion = 0;
+            var modelProvider = new Comsol3DConvectionDiffusionProductionModelProviderEquation9BCs(vs,
+                diffusion, dependentProductionCoeff, independentSource, capacity);
+
+            var model = modelProvider.CreateModelFromComsolFile(fileName);
+            var solverFactory = new DenseMatrixSolver.Factory(); //Dense Matrix Solver solves with zero matrices!
+            var algebraicModel = solverFactory.BuildAlgebraicModel(model);
+            var solver = solverFactory.BuildSolver(algebraicModel);
+            var problem = new ProblemConvectionDiffusion(model, algebraicModel, solver);
+
+            var linearAnalyzer = new LinearAnalyzer(algebraicModel, solver, problem);
+
+            var dynamicAnalyzerBuilder = new BDFDynamicAnalyzer.Builder(model, algebraicModel, problem, linearAnalyzer, timeStep: 1, totalTime: 10, bdfOrder: 5);
+            var dynamicAnalyzer = dynamicAnalyzerBuilder.Build();
+
+            var watchDofs = new List<(INode node, IDofType dof)>()
+            {
+                (model.NodesDictionary[36], ConvectionDiffusionDof.UnknownVariable),
+            };
+
+            linearAnalyzer.LogFactory = new LinearAnalyzerLogFactory(watchDofs, algebraicModel);
+
+            dynamicAnalyzer.Initialize();
+            dynamicAnalyzer.Solve();
+
+            DOFSLog log = (DOFSLog)linearAnalyzer.Logs[0];
+            double computedValue = log.DOFValues[watchDofs[0].node, watchDofs[0].dof];
+
+        }
+
     }
 }

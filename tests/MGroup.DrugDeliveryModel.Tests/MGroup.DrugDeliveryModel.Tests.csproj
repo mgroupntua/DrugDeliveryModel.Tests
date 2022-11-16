@@ -11,6 +11,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="MGroup.FEM.ConvectionDiffusion" Version="0.2.0-unstable.83" />
     <PackageReference Include="MGroup.FEM.Structural" Version="0.2.0-unstable.83" />
     <PackageReference Include="MGroup.NumericalAnalyzers.Discretization" Version="0.2.0-unstable.44" />
     <PackageReference Include="MGroup.Solvers" Version="0.2.0-unstable.15" />
