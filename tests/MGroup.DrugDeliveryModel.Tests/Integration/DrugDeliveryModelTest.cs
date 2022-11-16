@@ -8,6 +8,11 @@ using MGroup.DrugDeliveryModel.Tests.EquationModels;
 using MGroup.NumericalAnalyzers.Dynamic;
 using MGroup.NumericalAnalyzers.Logging;
 using MGroup.NumericalAnalyzers.Staggered;
+using MGroup.NumericalAnalyzers.Discretization.NonLinear;
+using MGroup.Constitutive.Structural;
+using MGroup.DrugDeliveryModel.Tests.Commons;
+using MGroup.NumericalAnalyzers;
+using MGroup.Solvers.Direct;
 using Xunit;
 
 namespace MGroup.DrugDeliveryModel.Tests.Integration
@@ -32,6 +37,8 @@ namespace MGroup.DrugDeliveryModel.Tests.Integration
         }
 
         [Theory]
+        //[InlineData("../../../DataFiles/workingTetMesh4886.mphtxt")]
+        //[InlineData("../../../DataFiles/chipMelter2M.mphtxt")]
         [InlineData("../../../DataFiles/MeshCyprusTM.mphtxt")]
         public void MonophasicEquationModel(string fileName)
 		{
@@ -76,6 +83,81 @@ namespace MGroup.DrugDeliveryModel.Tests.Integration
 
                 Console.WriteLine($"Displacement vector: {string.Join(", ", Solution[currentTimeStep])}");
             }
+        }
+
+        [Fact]
+        public void StaticLinearTestOrthogonalParallelepiped()
+        {
+            var model = Utilities.GetParallelepipedMesh();
+
+            var solverFactory = new SkylineSolver.Factory();
+            var algebraicModel = solverFactory.BuildAlgebraicModel(model);
+            var solver = solverFactory.BuildSolver(algebraicModel);
+            var problem = new ProblemStructural(model, algebraicModel, solver);
+            var linearAnalyzer = new LinearAnalyzer(algebraicModel, solver, problem);
+            var staticAnalyzer = new StaticAnalyzer(model, algebraicModel, problem, linearAnalyzer);
+
+            staticAnalyzer.Initialize();
+            staticAnalyzer.Solve();
+        }
+
+        [Theory]
+        [InlineData("../../../DataFiles/sanityCheckMesh.mphtxt")]
+        public void StaticLinearTest(string fileName)
+        {
+            var equationModel = new MonophasicEquationModel(fileName, Sc, miNormal, kappaNormal, miTumor, kappaTumor, timeStep, totalTime, lambda0);
+            Dictionary<int, double> lambda = new Dictionary<int, double>(equationModel.Reader.ElementConnectivity.Count());
+            foreach (var elem in equationModel.Reader.ElementConnectivity)
+            {
+                lambda.Add(elem.Key, elem.Value.Item3 == 0 ? equationModel.CalculateLambda(currentTimeStep * timeStep) : 1d);
+            }
+            var model = new Model[] { EquationModels.MonophasicEquationModel.CreateElasticModelFromComsolFile(equationModel.Reader, miNormal, kappaNormal, miTumor, kappaTumor, lambda), };
+            var solverFactory = new SkylineSolver.Factory() { FactorizationPivotTolerance = 1e-8 };
+            var algebraicModel = new[] { solverFactory.BuildAlgebraicModel(model[0]), };
+            var solver = new[] { solverFactory.BuildSolver(algebraicModel[0]), };
+            var problem = new[] { new ProblemStructural(model[0], algebraicModel[0], solver[0]), };
+            var linearAnalyzer = new LinearAnalyzer(algebraicModel[0], solver[0], problem[0]);
+            var analyzer = new StaticAnalyzer(model[0], algebraicModel[0], problem[0], linearAnalyzer);
+            analyzer.Initialize();
+            analyzer.Solve();
+        }
+
+        [Theory]
+        [InlineData("../../../DataFiles/NotSoSimpleTetMesh.mphtxt")]
+        public void SimpleNonLinearModelSolution(string fileName)
+        {
+            var equationModel = new MonophasicEquationModel(fileName, Sc, miNormal, kappaNormal, miTumor, kappaTumor, timeStep, totalTime, lambda0);
+            Dictionary<int, double> lambda = new Dictionary<int, double>(equationModel.Reader.ElementConnectivity.Count());
+            currentTimeStep = 0;
+            foreach (var elem in equationModel.Reader.ElementConnectivity)
+            {
+                lambda.Add(elem.Key, elem.Value.Item3 == 0 ? equationModel.CalculateLambda(currentTimeStep * timeStep) : 1d);
+            }
+            var model = new Model[] { EquationModels.MonophasicEquationModel.CreateElasticModelFromComsolFile(equationModel.Reader, miNormal, kappaNormal, miTumor, kappaTumor, lambda), };
+            var solverFactory = new SkylineSolver.Factory() { FactorizationPivotTolerance = 1e-8 };
+            var algebraicModel = new[] { solverFactory.BuildAlgebraicModel(model[0]), };
+            var solver = new[] { solverFactory.BuildSolver(algebraicModel[0]), };
+            var problem = new[] { new ProblemStructural(model[0], algebraicModel[0], solver[0]), };
+            var loadControlAnalyzerBuilder = new LoadControlAnalyzer.Builder(model[0], algebraicModel[0], solver[0], problem[0], numIncrements: 1)
+            {
+                ResidualTolerance = 1E-7,
+                MaxIterationsPerIncrement = 20,
+                NumIterationsForMatrixRebuild = 1
+            };
+            var loadControlAnalyzer = loadControlAnalyzerBuilder.Build();
+            loadControlAnalyzer.TotalDisplacementsPerIterationLog = new TotalDisplacementsPerIterationLog(
+                new List<(INode node, IDofType dof)>()
+                {
+                            (model[0].NodesDictionary[333], StructuralDof.TranslationX),
+                            (model[0].NodesDictionary[333], StructuralDof.TranslationY),
+                            (model[0].NodesDictionary[333], StructuralDof.TranslationZ),
+
+                }, algebraicModel[0]
+            );
+            var analyzer = new StaticAnalyzer(model[0], algebraicModel[0], problem[0], loadControlAnalyzer);
+            analyzer.Initialize();
+            analyzer.Solve();
+            //var u1X = ((DOFSLog)parentAnalyzers[0].ChildAnalyzer.Logs[0]).DOFValues.FirstOrDefault().val;
         }
     }
 }

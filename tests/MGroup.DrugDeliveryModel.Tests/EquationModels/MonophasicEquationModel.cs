@@ -37,7 +37,7 @@ namespace MGroup.DrugDeliveryModel.Tests.EquationModels
         private ISolver[] parentSolvers;
         private string fileName;
 
-        private double CalculateLambda(double timeInDays) => lambda0 * Math.Exp(sc * timeInDays / 3d);
+        public double CalculateLambda(double timeInDays) => lambda0 * Math.Exp(sc * timeInDays / 3d);
 
         public int CurrentTimeStep { get; set; }
         public GenericAnalyzerState[] AnalyzerStates => analyzerStates;
@@ -45,6 +45,7 @@ namespace MGroup.DrugDeliveryModel.Tests.EquationModels
         public IParentAnalyzer[] ParentAnalyzers => parentAnalyzers;
         public IChildAnalyzer[] NLAnalyzers => nlAnalyzers;
         public ISolver[] ParentSolvers => parentSolvers;
+        public ComsolMeshReader Reader => reader;
 
         public MonophasicEquationModel(string fileName, double sc, double miNormal, double kappaNormal, double miTumor, double kappaTumor, double timeStep, double totalTime, double lambda0)
         {
