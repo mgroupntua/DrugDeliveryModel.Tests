@@ -96,7 +96,7 @@ namespace MGroup.DrugDeliveryModel.Tests.Integration
             var solver = solverFactory.BuildSolver(algebraicModel);
             var problem = new ProblemStructural(model, algebraicModel, solver);
             var linearAnalyzer = new LinearAnalyzer(algebraicModel, solver, problem);
-            var staticAnalyzer = new StaticAnalyzer(model, algebraicModel, problem, linearAnalyzer);
+            var staticAnalyzer = new StaticAnalyzer(algebraicModel, problem, linearAnalyzer);
 
             staticAnalyzer.Initialize();
             staticAnalyzer.Solve();
@@ -118,7 +118,7 @@ namespace MGroup.DrugDeliveryModel.Tests.Integration
             var solver = new[] { solverFactory.BuildSolver(algebraicModel[0]), };
             var problem = new[] { new ProblemStructural(model[0], algebraicModel[0], solver[0]), };
             var linearAnalyzer = new LinearAnalyzer(algebraicModel[0], solver[0], problem[0]);
-            var analyzer = new StaticAnalyzer(model[0], algebraicModel[0], problem[0], linearAnalyzer);
+            var analyzer = new StaticAnalyzer( algebraicModel[0], problem[0], linearAnalyzer);
             analyzer.Initialize();
             analyzer.Solve();
         }
@@ -139,7 +139,7 @@ namespace MGroup.DrugDeliveryModel.Tests.Integration
             var algebraicModel = new[] { solverFactory.BuildAlgebraicModel(model[0]), };
             var solver = new[] { solverFactory.BuildSolver(algebraicModel[0]), };
             var problem = new[] { new ProblemStructural(model[0], algebraicModel[0], solver[0]), };
-            var loadControlAnalyzerBuilder = new LoadControlAnalyzer.Builder(model[0], algebraicModel[0], solver[0], problem[0], numIncrements: 1)
+            var loadControlAnalyzerBuilder = new LoadControlAnalyzer.Builder( algebraicModel[0], solver[0], problem[0], 1)
             {
                 ResidualTolerance = 1E-7,
                 MaxIterationsPerIncrement = 20,
@@ -155,7 +155,7 @@ namespace MGroup.DrugDeliveryModel.Tests.Integration
 
                 }, algebraicModel[0]
             );
-            var analyzer = new StaticAnalyzer(model[0], algebraicModel[0], problem[0], loadControlAnalyzer);
+            var analyzer = new StaticAnalyzer(algebraicModel[0], problem[0], loadControlAnalyzer);
             analyzer.Initialize();
             analyzer.Solve();
             //var u1X = ((DOFSLog)parentAnalyzers[0].ChildAnalyzer.Logs[0]).DOFValues.FirstOrDefault().val;
@@ -181,7 +181,7 @@ namespace MGroup.DrugDeliveryModel.Tests.Integration
 
             var linearAnalyzer = new LinearAnalyzer(algebraicModel, solver, problem);
 
-            var dynamicAnalyzerBuilder = new BDFDynamicAnalyzer.Builder(model, algebraicModel, problem, linearAnalyzer, timeStep: 1, totalTime: 10, bdfOrder: 5);
+            var dynamicAnalyzerBuilder = new BDFDynamicAnalyzer.Builder( algebraicModel, problem, linearAnalyzer, timeStep: 1, totalTime: 10, bdfOrder: 5);
             var dynamicAnalyzer = dynamicAnalyzerBuilder.Build();
 
             var watchDofs = new List<(INode node, IDofType dof)>()
@@ -219,7 +219,7 @@ namespace MGroup.DrugDeliveryModel.Tests.Integration
 
             var linearAnalyzer = new LinearAnalyzer(algebraicModel, solver, problem);
 
-            var dynamicAnalyzerBuilder = new BDFDynamicAnalyzer.Builder(model, algebraicModel, problem, linearAnalyzer, timeStep: 1, totalTime: 10, bdfOrder: 5);
+            var dynamicAnalyzerBuilder = new BDFDynamicAnalyzer.Builder( algebraicModel, problem, linearAnalyzer, timeStep: 1, totalTime: 10, bdfOrder: 5);
             var dynamicAnalyzer = dynamicAnalyzerBuilder.Build();
 
             var watchDofs = new List<(INode node, IDofType dof)>()
@@ -253,7 +253,7 @@ namespace MGroup.DrugDeliveryModel.Tests.Integration
 
             var linearAnalyzer = new LinearAnalyzer(algebraicModel, solver, problem);
 
-            var dynamicAnalyzerBuilder = new BDFDynamicAnalyzer.Builder(model, algebraicModel, problem, linearAnalyzer, timeStep: 1, totalTime: 10, bdfOrder: 5);
+            var dynamicAnalyzerBuilder = new BDFDynamicAnalyzer.Builder(algebraicModel, problem, linearAnalyzer, timeStep: 1, totalTime: 10, bdfOrder: 5);
             var dynamicAnalyzer = dynamicAnalyzerBuilder.Build();
 
             var watchDofs = new List<(INode node, IDofType dof)>()
