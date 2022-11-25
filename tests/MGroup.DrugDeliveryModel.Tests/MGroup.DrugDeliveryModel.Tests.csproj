@@ -11,10 +11,10 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="MGroup.FEM.ConvectionDiffusion" Version="0.2.0-unstable.83" />
-    <PackageReference Include="MGroup.FEM.Structural" Version="0.2.0-unstable.83" />
-    <PackageReference Include="MGroup.NumericalAnalyzers.Discretization" Version="0.2.0-unstable.44" />
-    <PackageReference Include="MGroup.Solvers" Version="0.2.0-unstable.15" />
+    <PackageReference Include="MGroup.FEM.ConvectionDiffusion" Version="0.2.0-unstable.102" />
+    <PackageReference Include="MGroup.FEM.Structural" Version="0.2.0-unstable.102" />
+    <PackageReference Include="MGroup.NumericalAnalyzers.Discretization" Version="0.2.0-unstable.46" />
+    <PackageReference Include="MGroup.Solvers" Version="0.2.0-unstable.17" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
     <PackageReference Include="Moq" Version="4.13.0" />
     <PackageReference Include="OpenCover" Version="4.7.922" />
@@ -33,6 +33,5 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Commons\" />
-    <Folder Include="DataFiles\" />
   </ItemGroup>
 </Project>

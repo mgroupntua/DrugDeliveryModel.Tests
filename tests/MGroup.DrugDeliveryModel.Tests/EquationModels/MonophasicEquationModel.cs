@@ -82,7 +82,7 @@ namespace MGroup.DrugDeliveryModel.Tests.EquationModels
             var algebraicModel = new[] { solverFactory.BuildAlgebraicModel(model[0]), };
             solvers[0] = solverFactory.BuildSolver(algebraicModel[0]);
             var problem = new[] { new ProblemStructural(model[0], algebraicModel[0], solvers[0]), };
-            var loadControlAnalyzerBuilder = new LoadControlAnalyzer.Builder(model[0], algebraicModel[0], solvers[0], problem[0], numIncrements: nrIncrements)
+            var loadControlAnalyzerBuilder = new LoadControlAnalyzer.Builder( algebraicModel[0], solvers[0], problem[0], numIncrements: nrIncrements)
             {
                 ResidualTolerance = 1E-4,
                 MaxIterationsPerIncrement = 1000,
@@ -100,7 +100,7 @@ namespace MGroup.DrugDeliveryModel.Tests.EquationModels
                 }, algebraicModel[0]
             );
 
-            analyzers[0] = (new PseudoTransientAnalyzer.Builder(model[0], algebraicModel[0], problem[0], loadControlAnalyzer, timeStep: timeStep, totalTime: totalTime, currentStep: CurrentTimeStep)).Build();
+            analyzers[0] = (new PseudoTransientAnalyzer.Builder( algebraicModel[0], problem[0], loadControlAnalyzer, timeStep: timeStep, totalTime: totalTime, currentStep: CurrentTimeStep)).Build();
 
             //Sparse tet Mesh
             var watchDofs = new[]
